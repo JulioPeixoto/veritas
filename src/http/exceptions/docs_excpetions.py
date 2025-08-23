@@ -13,7 +13,7 @@ class InvalidFormatExceptionResponse(BaseModel):
             "examples": [
                 {
                     "status_code": 400,
-                    "detail": "Formato de arquivo inválido: pdf",
+                    "detail": "Formato de arquivo inválido: .env",
                     "headers": {
                         "X-Error": "Formatos válidos: " + ", ".join(DocsType)
                     },

@@ -15,13 +15,8 @@ router = APIRouter(prefix="", tags=["Docs"])
 )
 async def indexa_documento_no_vector_store(
     file: UploadFile = File(...),
-    name: str = Form(...),
-    description: str = Form(...),
-    type: str = Form(...)
+    name: str = Form(""),
+    description: str = Form(""),
 ):
-    request_data = DocsIndexingRequest(
-        name=name,
-        description=description,
-        type=type
-    )
+    request_data = DocsIndexingRequest(name=name, description=description)
     return await docs_service.indexa_documento(file, request_data)
