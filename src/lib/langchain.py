@@ -13,6 +13,14 @@ class LangChainClient:
         )
         self._db = None
 
+    def init_db(self):
+        self._db = SQLiteVec.from_texts(
+            texts=[],
+            embedding=self.embedding,
+            table=self.table,
+            db_file=self.db_file,
+        )
+    
     def _ensure_db(self, texts: List[str]):
         self._db = SQLiteVec.from_texts(
             texts=texts,
