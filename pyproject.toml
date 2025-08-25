@@ -11,4 +11,6 @@ dependencies = [
     "sentence-transformers>=5.1.0",
     "sqlite-vec>=0.1.6",
     "pydantic-settings>=2.9.0",
+    "langchain-openai>=0.3.31",
+    "python-dotenv>=1.1.1",
 ]
