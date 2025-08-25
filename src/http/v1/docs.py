@@ -18,12 +18,9 @@ async def indexa_documento_no_vector_store(
     name: str = Form("", description="Nome do documento"),
     description: str = Form("", description="Descrição do documento"),
 ):
-    try:
-        request_data = DocsIndexingRequest(name=name, description=description)
-        result = await docs_service.indexa_documento(file, request_data)
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao indexar documento: {str(e)}")
+    request_data = DocsIndexingRequest(name=name, description=description)
+    result = await docs_service.indexa_documento(file, request_data)
+    return result
 
 
 @router.get(

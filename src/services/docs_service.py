@@ -32,7 +32,7 @@ class DocsService:
         file_extension = file_extension.lower()
 
         if file_extension not in self.valid_extensions:
-            raise InvalidFormatException(f"Formato não suportado: {file_extension}")
+            raise InvalidFormatException(file_extension)
 
         return self.valid_extensions[file_extension]
 
