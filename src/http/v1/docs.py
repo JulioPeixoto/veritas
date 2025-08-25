@@ -6,11 +6,11 @@ from typing import List, Dict, Any
 
 docs_service = DocsService()
 
-router = APIRouter(prefix="/api/v1", tags=["Docs"])
+router = APIRouter(prefix="", tags=["Docs"])
 
 @router.post(
     "/docs/indexing",
-    status_code=201,
+    status_code=204,
     responses={400: {"model": InvalidFormatExceptionResponse}},
 )
 async def indexa_documento_no_vector_store(
@@ -26,7 +26,7 @@ async def indexa_documento_no_vector_store(
 @router.get(
     "/docs/search",
     status_code=200,
-    response_model=List[Dict[str, Any]],
+    responses={400: {"model": InvalidFormatExceptionResponse}},
 )
 async def search_docs(
     query: str = Query(..., description="Texto de busca", min_length=1),
@@ -53,8 +53,3 @@ async def search_docs_with_context(
         return results
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro na busca: {str(e)}")
-
-
-@router.get("/docs/health")
-async def health_check():
-    return {"status": "healthy", "service": "docs-service"}
