@@ -9,7 +9,7 @@ import os
 
 class DocsService:
     def __init__(self, db_file: str = Settings().db_file):
-        self.client = LangChainClient(db_file=db_file)
+        self.llm_client = LangChainClient(db_file=db_file)
         self.valid_extensions = {
             ".pdf": DocsType.PDF,
             ".docx": DocsType.DOCX,
@@ -42,5 +42,9 @@ class DocsService:
             
         splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
         docs = splitter.split_text(text)
-        self.client.add_texts(docs)
+        self.llm_client.add_texts(docs)
         return None
+
+    async def search_docs(self, query: str):
+        pass
+    
