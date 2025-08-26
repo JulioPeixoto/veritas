@@ -1,6 +1,5 @@
 import io
 import os
-import sqlite3
 from typing import Any, Dict, List
 
 import PyPDF2

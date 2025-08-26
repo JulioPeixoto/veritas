@@ -4,10 +4,12 @@ dev:
 install uv:
 	pip install -U pip && pip install uv
 
+# Formatação de código
 format:
 	black .
 	isort .
 
+# Linting de código
 lint:
 	flake8 .
 
