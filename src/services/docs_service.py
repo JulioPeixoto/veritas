@@ -1,10 +1,12 @@
-from src.lib.langchain import LangChainClient
-from langchain_text_splitters import CharacterTextSplitter
-from src.schemas.docs_schema import DocsIndexingRequest, DocsType
-from src.http.exceptions.docs_excpetions import InvalidFormatException
-from src.config import Settings
-from fastapi import UploadFile
 import os
+
+from fastapi import UploadFile
+from langchain_text_splitters import CharacterTextSplitter
+
+from src.config import Settings
+from src.http.exceptions.docs_excpetions import InvalidFormatException
+from src.lib.langchain import LangChainClient
+from src.schemas.docs_schema import DocsIndexingRequest, DocsType
 
 
 class DocsService:
@@ -34,12 +36,12 @@ class DocsService:
 
     async def indexa_documento(self, file: UploadFile, request: DocsIndexingRequest):
         content = await file.read()
-        
+
         try:
             text = content.decode("utf-8")
         except Exception:
             text = str(content)
-            
+
         splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
         docs = splitter.split_text(text)
         self.llm_client.add_texts(docs)
@@ -47,4 +49,3 @@ class DocsService:
 
     async def search_docs(self, query: str):
         pass
-    

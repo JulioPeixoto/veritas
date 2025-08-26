@@ -1,6 +1,8 @@
 from typing import List
+
 from langchain_community.vectorstores import SQLiteVec
 from langchain_openai import OpenAIEmbeddings
+
 from src.config import Settings
 
 
@@ -20,7 +22,7 @@ class LangChainClient:
             table=self.table,
             db_file=self.db_file,
         )
-    
+
     def _ensure_db(self, texts: List[str]):
         self._db = SQLiteVec.from_texts(
             texts=texts,

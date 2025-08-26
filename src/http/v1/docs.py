@@ -1,8 +1,8 @@
-from fastapi import APIRouter, File, UploadFile, Form
+from fastapi import APIRouter, File, Form, Query, UploadFile
+
+from src.http.exceptions.docs_excpetions import InvalidFormatExceptionResponse
 from src.schemas.docs_schema import DocsIndexingRequest
 from src.services.docs_service import DocsService
-from src.http.exceptions.docs_excpetions import InvalidFormatExceptionResponse
-from fastapi import Query
 
 docs_service = DocsService()
 

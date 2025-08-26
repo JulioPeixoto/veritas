@@ -1,5 +1,6 @@
 from fastapi import HTTPException
 from pydantic import BaseModel
+
 from src.schemas.docs_schema import DocsType
 
 
@@ -14,9 +15,7 @@ class InvalidFormatExceptionResponse(BaseModel):
                 {
                     "status_code": 400,
                     "detail": "Formato de arquivo inválido: .env",
-                    "headers": {
-                        "X-Error": "Formatos válidos: " + ", ".join(DocsType)
-                    },
+                    "headers": {"X-Error": "Formatos válidos: " + ", ".join(DocsType)},
                 }
             ]
         }
