@@ -5,11 +5,11 @@ install uv:
 	pip install -U pip && pip install uv
 
 format:
-	black src
-	isort src
+	black .
+	isort .
 
 lint:
-	flake8 src
+	flake8 .
 
 check:
 	uv run black --check --diff .
