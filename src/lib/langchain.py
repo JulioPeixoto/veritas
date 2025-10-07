@@ -3,15 +3,15 @@ from typing import List
 from langchain_community.vectorstores import SQLiteVec
 from langchain_openai import OpenAIEmbeddings
 
-from src.config import Settings
+from src.config import settings
 
 
 class LangChainClient:
-    def __init__(self, db_file: str = Settings().db_file, table: str = "documents"):
+    def __init__(self, db_file: str = settings.path_db_file, table: str = "documents"):
         self.db_file = db_file
         self.table = table
         self.embedding = OpenAIEmbeddings(
-            model="text-embedding-3-small", api_key=Settings().openai_api_key
+            model="text-embedding-3-small", api_key=settings.openai_api_key
         )
         self._db = None
 

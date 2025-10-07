@@ -1,9 +1,16 @@
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 
 from src.http import router
+from src.ws import router as ws_router
 from src.lib.langchain import LangChainClient
 
 app = FastAPI(title="Veritas", version="0.1.0")
+
+
+@app.get("/")
+async def root():
+    return RedirectResponse(url="/docs")
 
 
 @app.on_event("startup")
@@ -12,3 +19,4 @@ async def startup_event():
 
 
 app.include_router(router)
+app.include_router(ws_router)

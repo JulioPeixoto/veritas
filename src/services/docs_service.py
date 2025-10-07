@@ -7,14 +7,14 @@ from docx import Document
 from fastapi import UploadFile
 from langchain_text_splitters import CharacterTextSplitter
 
-from src.config import Settings
+from src.config import settings
 from src.http.exceptions.docs_excpetions import InvalidFormatException
 from src.lib.langchain import LangChainClient
 from src.schemas.docs_schema import DocsIndexingRequest, DocsType
 
 
 class DocsService:
-    def __init__(self, db_file: str = Settings().db_file):
+    def __init__(self, db_file: str = settings.path_db_file):
         self.llm_client = LangChainClient(db_file=db_file)
         self.valid_extensions = {
             ".pdf": DocsType.PDF,
@@ -30,7 +30,7 @@ class DocsService:
         if not file.filename:
             raise InvalidFormatException("Nome do arquivo não encontrado")
 
-        filename_without_extension, file_extension = os.path.splitext(file.filename)
+        _, file_extension = os.path.splitext(file.filename)
         file_extension = file_extension.lower()
 
         if file_extension not in self.valid_extensions:
