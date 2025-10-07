@@ -5,6 +5,12 @@ router = APIRouter()
 client = openai.OpenAIClient()
 
 
+@router.websocket("/ws/health")
+async def websocket_health_ws(ws: WebSocket):
+    await ws.accept()
+    await ws.send_json({"message": "WebSocket health connected"})
+    await ws.close()
+
 @router.websocket("/ws/agent")
 async def websocket_endpoint(ws: WebSocket):
     await ws.accept()
