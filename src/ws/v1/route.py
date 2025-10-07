@@ -19,7 +19,7 @@ async def websocket_endpoint(ws: WebSocket):
         data = await ws.receive_text()
         print(f"User said: {data}")
 
-        response = client.create_response(data)
+        response = await client.create_response(data)
 
         await ws.send_json(
             {"text": response.answer, "audio_base64": response.audio_base64}
