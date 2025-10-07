@@ -11,5 +11,5 @@ make dev
 
 ### Instalar dependências com uv
 ```bash
-make install uv
+make uv
 ```
