@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        button {
+            padding: 10px 15px;
+            margin-right: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button.connect {
+            background-color: #28a745;
+            color: white;
+        }
+        button.disconnect {
+            background-color: #dc3545;
+            color: white;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        input[type="text"] {
+            width: calc(100% - 120px);
+            padding: 10px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        #messageInput {
+            width: calc(100% - 120px);
+        }
+        #sendButton {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #messages {
+            border: 1px solid #ddd;
+            padding: 10px;
+            height: 300px;
+            overflow-y: scroll;
+            margin-top: 20px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+        .message-item {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        .message-item:last-child {
+            border-bottom: none;
+        }
+        .user-message {
+            color: #007bff;
+        }
+        .server-message {
+            color: #28a745;
+        }
+        .error-message {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WebSocket Test Client</h1>
+
+        <h2>Health Check (/ws/health)</h2>
+        <button id="connectHealth" class="connect">Connect to Health WS</button>
+        <button id="disconnectHealth" class="disconnect" disabled>Disconnect Health WS</button>
+        <p>Status: <span id="healthStatus">Disconnected</span></p>
+
+        <h2>Agent Chat (/ws/agent)</h2>
+        <button id="connectAgent" class="connect">Connect to Agent WS</button>
+        <button id="disconnectAgent" class="disconnect" disabled>Disconnect Agent WS</button>
+        <p>Status: <span id="agentStatus">Disconnected</span></p>
+
+        <div style="margin-top: 20px;">
+            <input type="text" id="messageInput" placeholder="Type a message..." disabled>
+            <button id="sendButton" disabled>Send</button>
+        </div>
+
+        <div id="messages"></div>
+    </div>
+
+    <script>
+        let healthWs = null;
+        let agentWs = null;
+
+        const healthStatus = document.getElementById('healthStatus');
+        const connectHealthBtn = document.getElementById('connectHealth');
+        const disconnectHealthBtn = document.getElementById('disconnectHealth');
+
+        const agentStatus = document.getElementById('agentStatus');
+        const connectAgentBtn = document.getElementById('connectAgent');
+        const disconnectAgentBtn = document.getElementById('disconnectAgent');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const messagesDiv = document.getElementById('messages');
+
+        function appendMessage (type, text) {
+            const p = document.createElement('p');
+            p.className = `message-item ${type}-message`;
+            p.textContent = text;
+            messagesDiv.appendChild(p);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // Health WS
+        connectHealthBtn.addEventListener('click', () => {
+            healthWs = new WebSocket('ws://localhost:8000/ws/health');
+            healthStatus.textContent = 'Connecting...';
+            connectHealthBtn.disabled = true;
+            disconnectHealthBtn.disabled = false;
+
+            healthWs.onopen = (event) => {
+                healthStatus.textContent = 'Connected';
+                appendMessage('server', 'Health WebSocket connected.');
+            };
+
+            healthWs.onmessage = (event) => {
+                appendMessage('server', `Health WS Message: ${event.data}`);
+            };
+
+            healthWs.onclose = (event) => {
+                healthStatus.textContent = 'Disconnected';
+                appendMessage('server', 'Health WebSocket disconnected.');
+                connectHealthBtn.disabled = false;
+                disconnectHealthBtn.disabled = true;
+            };
+
+            healthWs.onerror = (event) => {
+                healthStatus.textContent = 'Error';
+                appendMessage('error', 'Health WebSocket error occurred.');
+                console.error("Health WebSocket error:", event);
+            };
+        });
+
+        disconnectHealthBtn.addEventListener('click', () => {
+            if (healthWs) {
+                healthWs.close();
+            }
+        });
+
+        // Agent WS
+        connectAgentBtn.addEventListener('click', () => {
+            agentWs = new WebSocket('ws://localhost:8000/ws/agent');
+            agentStatus.textContent = 'Connecting...';
+            connectAgentBtn.disabled = true;
+            disconnectAgentBtn.disabled = false;
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+
+            agentWs.onopen = (event) => {
+                agentStatus.textContent = 'Connected';
+                appendMessage('server', 'Agent WebSocket connected. You can now send messages.');
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+            };
+
+            agentWs.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    appendMessage('server', `Agent WS Response: ${JSON.stringify(data, null, 2)}`);
+                } catch (e) {
+                    appendMessage('server', `Agent WS Raw Message: ${event.data}`);
+                }
+            };
+
+            agentWs.onclose = (event) => {
+                agentStatus.textContent = 'Disconnected';
+                appendMessage('server', 'Agent WebSocket disconnected.');
+                connectAgentBtn.disabled = false;
+                disconnectAgentBtn.disabled = true;
+                messageInput.disabled = true;
+                sendButton.disabled = true;
+            };
+
+            agentWs.onerror = (event) => {
+                agentStatus.textContent = 'Error';
+                appendMessage('error', 'Agent WebSocket error occurred.');
+                console.error("Agent WebSocket error:", event);
+            };
+        });
+
+        disconnectAgentBtn.addEventListener('click', () => {
+            if (agentWs) {
+                agentWs.close();
+            }
+        });
+
+        sendButton.addEventListener('click', () => {
+            const message = messageInput.value;
+            if (agentWs && agentWs.readyState === WebSocket.OPEN && message) {
+                agentWs.send(message);
+                appendMessage('user', `You: ${message}`);
+                messageInput.value = '';
+            }
+        });
+
+        messageInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                sendButton.click();
+            }
+        });
+
+    </script>
+</body>
+</html>

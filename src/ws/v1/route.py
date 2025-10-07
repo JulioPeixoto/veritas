@@ -11,6 +11,7 @@ async def websocket_health_ws(ws: WebSocket):
     await ws.send_json({"message": "WebSocket health connected"})
     await ws.close()
 
+# TODO: viseme/fonemes, ffmpeg and 1.25 speed for audio
 @router.websocket("/ws/agent")
 async def websocket_endpoint(ws: WebSocket):
     await ws.accept()
