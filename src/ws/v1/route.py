@@ -1,5 +1,5 @@
 from fastapi import APIRouter, WebSocket
-import src.lib.openai as openai
+import src.lib.clients.openai as openai
 
 router = APIRouter()
 client = openai.OpenAIClient()
