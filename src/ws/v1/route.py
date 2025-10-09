@@ -14,7 +14,7 @@ async def websocket_health_ws(ws: WebSocket):
     await ws.close()
 
 
-# TODO: viseme/fonemes, ffmpeg and 1.25 speed for audio
+# TODO: viseme/fonemes
 @router.websocket("/ws/agent")
 async def websocket_endpoint(ws: WebSocket):
     await ws.accept()
