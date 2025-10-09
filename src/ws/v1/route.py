@@ -1,6 +1,7 @@
 from fastapi import APIRouter, WebSocket
 import src.lib.clients.openai as openai
 from src.schemas.agent_schema import AgentResponse
+from src.lib.ffmpeg import speed_and_compress_b64
 
 router = APIRouter()
 client = openai.OpenAIClient()
@@ -20,13 +21,13 @@ async def websocket_endpoint(ws: WebSocket):
 
     while True:
         data = await ws.receive_text()
-        print(f"User said: {data}")
 
         response = await client.create_response(data)
-
+        audio_base64 = speed_and_compress_b64(response.audio_base64)
+        
         await ws.send_json(
             AgentResponse(
-                text=response.answer, 
-                audio_base64=response.audio_base64
+                text=response.answer,
+                audio_base64=audio_base64,
             ).model_dump()
         )
