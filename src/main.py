@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 
-from src.http import router
+from src.api import router
 from src.ws import router as ws_router
 from src.lib.clients.langchain import LangChainClient
 

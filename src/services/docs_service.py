@@ -8,7 +8,7 @@ from fastapi import UploadFile
 from langchain_text_splitters import CharacterTextSplitter
 
 from src.config import settings
-from src.http.exceptions.docs_excpetions import InvalidFormatException
+from src.api.exceptions.docs_excpetions import InvalidFormatException
 from src.lib.clients.langchain import LangChainClient
 from src.schemas.docs_schema import DocsIndexingRequest, DocsType
 

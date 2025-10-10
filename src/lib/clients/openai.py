@@ -22,7 +22,7 @@ class OpenAIClient:
 
     async def create_audio(self, data: str) -> str:
         speech = await self.client.audio.speech.create(
-            model="gpt-4o-mini-tts", voice="alloy", input=data
+            model="gpt-4o-mini-tts", voice="ash", input=data
         )
         audio_bytes = speech.read()
         audio_base64 = base64.b64encode(audio_bytes).decode("utf-8")

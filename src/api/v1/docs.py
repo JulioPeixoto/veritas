@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
 
-from src.http.exceptions.docs_excpetions import InvalidFormatExceptionResponse
+from src.api.exceptions.docs_excpetions import InvalidFormatExceptionResponse
 from src.schemas.docs_schema import DocsIndexingRequest
 from src.services.docs_service import DocsService
 
