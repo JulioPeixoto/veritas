@@ -16,6 +16,8 @@ dependencies = [
     "pypdf2>=3.0.1",
     "python-docx>=1.2.0",
     "ffmpeg-python>=0.2.0",
+    "beautifulsoup4>=4.14.2",
+    "trafilatura>=2.0.0",
 ]
 
 [dependency-groups]
