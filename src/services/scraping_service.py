@@ -9,7 +9,7 @@ from typing import Dict, List, Optional
 import requests
 import trafilatura
 from bs4 import BeautifulSoup
-from fastapi import HTTPException
+from fastapi import HTTPException, UploadFile
 
 from src.config import settings
 from src.lib.clients.serpapi import SerpAPIClient
@@ -202,23 +202,33 @@ class ScrapingService:
             path=os.path.join(self.data_dir, filename),
         )
 
-    def etl(self, filename: str) -> EtlResponse:
-        if not filename or "/" in filename or ".." in filename:
-            raise HTTPException(status_code=400, detail="filename inválido")
-        csv_path = os.path.join(self.data_dir, filename)
-        if not os.path.exists(csv_path):
-            raise HTTPException(status_code=404, detail="arquivo não encontrado")
+    async def etl(self, file: UploadFile) -> EtlResponse:
+        if not file.filename or not file.filename.endswith('.csv'):
+            raise HTTPException(status_code=400, detail="arquivo deve ser CSV")
+        
+        content = await file.read()
+        if not content:
+            raise HTTPException(status_code=400, detail="arquivo está vazio")
+        
         try:
-            with open(csv_path, newline="", encoding="utf-8") as f:
-                reader = csv.DictReader(f)
-                total = sum(1 for _ in reader)
-        except Exception:
-            total = 0
-
-        self._etl_one_file(csv_path)
+            content_str = content.decode('utf-8')
+            lines = content_str.strip().split('\n')
+            reader = csv.DictReader(lines)
+            links = [row["link"] for row in reader if row.get("link")]
+            total = len(links)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"erro ao processar CSV: {str(e)}")
+        
+        if not links:
+            raise HTTPException(status_code=400, detail="nenhum link encontrado no CSV")
+        
+        seen = set()
+        for url in links:
+            self._process_link(url, seen)
+            time.sleep(0.2)
 
         return EtlResponse(
-            filename=filename,
+            filename=file.filename,
             processed=total,
             output_dir=self.out_dir,
         )

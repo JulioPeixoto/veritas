@@ -27,6 +27,7 @@ class StoreService:
         self.valid_extensions = {
             ".pdf": DocsType.PDF,
             ".docx": DocsType.DOCX,
+            ".csv": DocsType.TXT,
             ".txt": DocsType.TXT,
             ".html": DocsType.HTML,
             ".htm": DocsType.HTML,

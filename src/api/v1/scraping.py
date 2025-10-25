@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, UploadFile, File
 
 from src.schemas.scraping_schema import (
     DeleteFileResponse,
@@ -75,32 +75,30 @@ async def scraping_urls(
 
 @router.post("/scraping/etl", status_code=200, response_model=EtlResponse)
 async def scraping_etl(
-    filename: str = Query(
-        ..., description="Nome do CSV gerado pela busca, localizado em data/"
-    )
+    file: UploadFile = File(..., description="Arquivo CSV com links para processar")
 ):
     """
-    Executa ETL (Extract, Transform, Load) sobre arquivo CSV gerado pelo scraping.
+    Executa ETL (Extract, Transform, Load) sobre arquivo CSV enviado.
 
-    Este endpoint processa o arquivo CSV informado, realizando etapas de extração, transformação e carregamento dos dados,
+    Este endpoint processa o arquivo CSV enviado, realizando etapas de extração, transformação e carregamento dos dados,
     retornando estatísticas e status do processamento.
 
     Parâmetros:
-        filename (str): Nome do arquivo CSV disponível em data/.
+        file (UploadFile): Arquivo CSV contendo links para scraping.
 
     Retorna:
-        dict: Dicionário com informações do ETL como número de registros processados, erros, e status final.
+        EtlResponse: Informações do ETL como número de registros processados e diretório de saída.
 
     Exceções:
-        FileNotFoundError: Se o arquivo não existir.
-        ValueError: Se o formato estiver inválido.
+        ValueError: Se o formato do arquivo estiver inválido.
         Exception: Para erros no processamento.
 
     Exemplo de uso:
-        >>> POST /scraping/etl?filename=meuarquivo.csv
-        Resposta: {{ "status": "concluído", "registrosProcessados": 200 }}
+        >>> POST /scraping/etl
+        Files: arquivo_links.csv
+        Resposta: {{ "filename": "arquivo_links.csv", "processed": 200, "output_dir": "data/scraping/search/" }}
     """
-    return service.etl(filename)
+    return await service.etl(file)
 
 
 @router.get("/scraping/files", status_code=200, response_model=ListFilesResponse)
