@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from pydantic import BaseModel
 
-from src.schemas.docs_schema import DocsType
+from src.schemas.store_schema import DocsType
 
 
 class InvalidFormatExceptionResponse(BaseModel):

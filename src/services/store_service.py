@@ -7,13 +7,13 @@ from docx import Document
 from fastapi import UploadFile
 from langchain_text_splitters import CharacterTextSplitter
 
-from src.api.exceptions.docs_excpetions import InvalidFormatException
+from src.api.exceptions.store_excpetions import InvalidFormatException
 from src.config import settings
 from src.lib.clients.langchain import LangChainClient
-from src.schemas.docs_schema import DocsIndexingRequest, DocsType
+from src.schemas.store_schema import DocsIndexingRequest, DocsType
 
 
-class DocsService:
+class StoreService:
     def __init__(self, db_file: str = settings.path_db_file):
         self.llm_client = LangChainClient(db_file=db_file)
         self.valid_extensions = {
