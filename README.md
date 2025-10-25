@@ -1,47 +1,47 @@
 # Veritas
 
-API FastAPI para processamento de dados.
+FastAPI-based data processing API.
 
-## Pré-requisitos
+## Prerequisites
 - Python 3.10+
-- [uv](https://github.com/astral-sh/uv) (gerenciador de dependências)
-- [.env](#arquivo-env) com variáveis de API (OpenAI e SerpAPI)
+- [uv](https://github.com/astral-sh/uv) (dependency manager)
+- [.env](#env-file) file with required API variables (OpenAI and SerpAPI)
 
-## Instalação de dependências (usando uv)
+## Installing dependencies (using uv)
 ```bash
 uv pip install -r requirements.txt
 ```
-Ou via Makefile:
+Or via Makefile:
 ```bash
 make uv
 ```
 
-## Como iniciar com uv
+## How to start using uv
 ```bash
 uvicorn src.main:app --reload
 ```
 
-## Arquivo .env
-Crie um arquivo `.env` na raiz do projeto com o seguinte conteúdo:
+## .env file
+Create a `.env` file at the root of the project with the following content:
 ```
-OPENAI_API_KEY=seu_token_openai
-erp_API_KEY=seu_token_serpapi
+OPENAI_API_KEY=your_openai_token
+SERP_API_KEY=your_serpapi_token
 ```
 
-Ajuste os nomes acima conforme necessários pelo seu app (consulte `src/config.py`). Estes tokens são obrigatórios para a operação dos módulos de processamento de linguagem e scraping.
+Adjust the names above as needed (check `src/config.py`). These tokens are required for language and scraping modules to work.
 
-## Comandos
+## Commands
 
-### Iniciar servidor de desenvolvimento
+### Start development server
 ```bash
 make dev
 ```
 
-### Instalar dependências com uv
+### Install dependencies with uv
 ```bash
 make uv
 ```
 
-## Referências externas importantes
-- [Documentação OpenAI API](https://platform.openai.com/docs)
-- [Documentação SerpAPI](https://serpapi.com/docs)
+## Important External References
+- [OpenAI API Documentation](https://platform.openai.com/docs)
+- [SerpAPI Documentation](https://serpapi.com/docs)
