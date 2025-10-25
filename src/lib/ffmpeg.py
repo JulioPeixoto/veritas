@@ -1,4 +1,5 @@
 from base64 import b64decode, b64encode
+
 import ffmpeg
 
 
@@ -13,9 +14,7 @@ def speed_and_compress_b64(
             "pipe:1",
             **{"filter:a": f"atempo={speed}"},
             acodec=codec,
-            **(
-                {"b:a": bitrate} if codec != "libmp3lame" else {"q:a": 4}
-            ),
+            **({"b:a": bitrate} if codec != "libmp3lame" else {"q:a": 4}),
             f=fmt,
             vn=None,
         )

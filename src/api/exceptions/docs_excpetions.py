@@ -25,10 +25,11 @@ class InvalidFormatExceptionResponse(BaseModel):
 def InvalidFormatException(type: DocsType):
     raise HTTPException(
         status_code=400,
-        detail={"message": "Formato de arquivo inválido",
-                "status": "invalid_format",
-                "type": type,
-                "valid_extensions": [ext.value for ext in DocsType]
-                },
+        detail={
+            "message": "Formato de arquivo inválido",
+            "status": "invalid_format",
+            "type": type,
+            "valid_extensions": [ext.value for ext in DocsType],
+        },
         headers={"X-Error": "Formatos válidos: " + ", ".join(DocsType)},
     )

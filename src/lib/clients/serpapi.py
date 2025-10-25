@@ -1,3 +1,5 @@
+# https://serpapi.com/search-api
+
 import requests
 
 
@@ -9,7 +11,6 @@ class SerpAPIClient:
     ):
         self.api_key = api_key
         self.base_url = base_url
-
 
     def search(self, *args, engine: str = None, **kwargs):
         params = {

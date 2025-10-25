@@ -1,7 +1,9 @@
-from openai import AsyncOpenAI
 import base64
-from src.config import settings
+
 import pydantic
+from openai import AsyncOpenAI
+
+from src.config import settings
 
 
 class AudioResponse(pydantic.BaseModel):

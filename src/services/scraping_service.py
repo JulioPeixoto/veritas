@@ -11,8 +11,8 @@ import trafilatura
 from bs4 import BeautifulSoup
 from fastapi import HTTPException
 
-from src.lib.clients.serpapi import SerpAPIClient
 from src.config import settings
+from src.lib.clients.serpapi import SerpAPIClient
 
 
 class ScrapingService:
@@ -61,7 +61,9 @@ class ScrapingService:
         if not html:
             return ""
         soup = BeautifulSoup(html, "html.parser")
-        og = soup.find("meta", property="og:title") or soup.find("meta", attrs={"name": "title"})
+        og = soup.find("meta", property="og:title") or soup.find(
+            "meta", attrs={"name": "title"}
+        )
         if og and og.get("content"):
             return og["content"].strip()
         if soup.title and soup.title.string:
@@ -73,13 +75,17 @@ class ScrapingService:
         if not html:
             return ""
         try:
-            text = trafilatura.extract(html, include_comments=False, include_tables=False)
+            text = trafilatura.extract(
+                html, include_comments=False, include_tables=False
+            )
             return (text or "").strip()
         except Exception:
             return ""
 
     def _sanitize_filename(self, name: str, maxlen: int = 120) -> str:
-        safe = "".join(ch if ch.isalnum() or ch in " ._-–—()" else "_" for ch in name).strip()
+        safe = "".join(
+            ch if ch.isalnum() or ch in " ._-–—()" else "_" for ch in name
+        ).strip()
         if len(safe) > maxlen:
             safe = safe[:maxlen].rstrip("_ .-")
         return safe or "sem_titulo"
@@ -92,13 +98,22 @@ class ScrapingService:
         with open(path, "w", encoding="utf-8", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=["title", "url", "content"])
             writer.writeheader()
-            writer.writerow({"title": title, "url": url, "content": content.replace("\n", " ").strip()})
+            writer.writerow(
+                {
+                    "title": title,
+                    "url": url,
+                    "content": content.replace("\n", " ").strip(),
+                }
+            )
 
     def _process_link(self, url: str, seen_titles: set):
         html = self._fetch_html(url)
         if not html:
             return
-        title = self._extract_title(html) or f"artigo_{hashlib.sha1(url.encode('utf-8')).hexdigest()[:10]}"
+        title = (
+            self._extract_title(html)
+            or f"artigo_{hashlib.sha1(url.encode('utf-8')).hexdigest()[:10]}"
+        )
         key = title.lower().strip()
         if key in seen_titles:
             return

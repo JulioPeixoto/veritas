@@ -2,13 +2,13 @@ from typing import Dict
 
 from fastapi import APIRouter, Query
 
-from src.services.scraping_service import ScrapingService
 from src.schemas.scraping_schema import (
     DeleteFileResponse,
     EtlResponse,
     ListFilesResponse,
     SearchLinksResponse,
 )
+from src.services.scraping_service import ScrapingService
 
 router = APIRouter(prefix="", tags=["Scraping"])
 service = ScrapingService()
@@ -17,10 +17,14 @@ service = ScrapingService()
 @router.post("/scraping/urls", status_code=200, response_model=SearchLinksResponse)
 async def scraping_urls(
     query: str = Query(..., min_length=1, description="Termo de busca"),
-    limit: int = Query(10, ge=1, le=100, description="Quantidade máxima de links a coletar (1–100)"),
+    limit: int = Query(
+        10, ge=1, le=100, description="Quantidade máxima de links a coletar (1–100)"
+    ),
     gl: str = Query("br", description="Código de país (gl), ex: br, us"),
     hl: str = Query("pt", description="Idioma (hl), ex: pt, en"),
-    engine: str = Query("google_news", description="Engine do SerpAPI; use google_news para notícias"),
+    engine: str = Query(
+        "google_news", description="Engine do SerpAPI; use google_news para notícias"
+    ),
     when: str | None = Query(None, description="Janela de tempo, ex: 24h, 7d"),
 ):
     """
@@ -65,13 +69,17 @@ async def scraping_urls(
                 "path": "data/links_inteligencia_artificial_20251025_203010.csv"
             }}
     """
-    result = service.search_links(query=query, limit=limit, gl=gl, hl=hl, engine=engine, when=when)
+    result = service.search_links(
+        query=query, limit=limit, gl=gl, hl=hl, engine=engine, when=when
+    )
     return result
 
 
 @router.post("/scraping/etl", status_code=200, response_model=EtlResponse)
 async def scraping_etl(
-    filename: str = Query(..., description="Nome do CSV gerado pela busca, localizado em data/")
+    filename: str = Query(
+        ..., description="Nome do CSV gerado pela busca, localizado em data/"
+    )
 ) -> Dict[str, str | int]:
     """
     Executa ETL (Extract, Transform, Load) sobre arquivo CSV gerado pelo scraping.
@@ -99,7 +107,10 @@ async def scraping_etl(
 
 @router.get("/scraping/files", status_code=200, response_model=ListFilesResponse)
 async def list_files(
-    kind: str = Query("all", description="Tipo de listagem: links (data/), scraped (data/scraping/search/) ou all")
+    kind: str = Query(
+        "all",
+        description="Tipo de listagem: links (data/), scraped (data/scraping/search/) ou all",
+    )
 ):
     """
     Lista arquivos de scraping disponíveis para consulta ou processamento.

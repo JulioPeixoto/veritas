@@ -12,7 +12,9 @@ class SearchLinksResponse(BaseModel):
 class EtlResponse(BaseModel):
     filename: str = Field(..., description="Arquivo de entrada em data/")
     processed: int = Field(..., description="Total de links lidos do CSV")
-    output_dir: str = Field(..., description="Diretório onde os CSVs por artigo são salvos")
+    output_dir: str = Field(
+        ..., description="Diretório onde os CSVs por artigo são salvos"
+    )
 
 
 class FileItem(BaseModel):
@@ -24,10 +26,11 @@ class FileItem(BaseModel):
 
 class ListFilesResponse(BaseModel):
     links: List[FileItem] = Field(default_factory=list, description="Arquivos em data/")
-    scraped: List[FileItem] = Field(default_factory=list, description="Arquivos em data/scraping/search/")
+    scraped: List[FileItem] = Field(
+        default_factory=list, description="Arquivos em data/scraping/search/"
+    )
 
 
 class DeleteFileResponse(BaseModel):
     deleted: str = Field(..., description="Arquivo removido")
     kind: str = Field(..., description="Categoria: links ou scraped")
-
