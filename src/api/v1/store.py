@@ -8,11 +8,11 @@ from src.services.docs_service import DocsService
 
 docs_service = DocsService()
 
-router = APIRouter(prefix="", tags=["Docs"])
+router = APIRouter(prefix="", tags=["Store"])
 
 
 @router.post(
-    "/docs/indexing",
+    "/store/docs/indexing",
     status_code=204,
     responses={400: {"model": InvalidFormatExceptionResponse}},
 )
@@ -27,7 +27,7 @@ async def indexa_documento_no_vector_store(
 
 
 @router.get(
-    "/docs/search",
+    "/store/docs/search",
     status_code=200,
     responses={400: {"model": InvalidFormatExceptionResponse}},
 )
@@ -43,7 +43,7 @@ async def search_docs(
 
 
 @router.get(
-    "/docs/search/context",
+    "/store/docs/search/context",
     status_code=200,
     response_model=Dict[str, Any],
 )
