@@ -1,6 +1,7 @@
 import base64
 
 import pydantic
+from langchain_openai import OpenAIEmbeddings
 from openai import AsyncOpenAI
 
 from src.config import settings

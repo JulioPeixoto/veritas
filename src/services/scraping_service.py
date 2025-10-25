@@ -13,6 +13,13 @@ from fastapi import HTTPException
 
 from src.config import settings
 from src.lib.clients.serpapi import SerpAPIClient
+from src.schemas.scraping_schema import (
+    DeleteFileResponse,
+    EtlResponse,
+    FileItem,
+    ListFilesResponse,
+    SearchLinksResponse,
+)
 
 
 class ScrapingService:
@@ -65,7 +72,7 @@ class ScrapingService:
             "meta", attrs={"name": "title"}
         )
         if og and og.get("content"):
-            return og["content"].strip()
+            return str(og["content"]).strip()
         if soup.title and soup.title.string:
             return soup.title.string.strip()
         h1 = soup.find("h1")
@@ -78,7 +85,7 @@ class ScrapingService:
             text = trafilatura.extract(
                 html, include_comments=False, include_tables=False
             )
-            return (text or "").strip()
+            return str(text or "").strip()
         except Exception:
             return ""
 
@@ -144,7 +151,7 @@ class ScrapingService:
         engine: str = "google_news",
         when: Optional[str] = None,
         extra_params: Optional[Dict[str, str]] = None,
-    ) -> Dict[str, str]:
+    ) -> SearchLinksResponse:
         if not query or not query.strip():
             raise HTTPException(status_code=400, detail="query inválida")
         if limit < 1:
@@ -189,13 +196,13 @@ class ScrapingService:
         filename = f"links_{self._slug(query)}_{timestamp}.csv"
         self._save_links_csv(collected, filename)
 
-        return {
-            "filename": filename,
-            "total_links": len(collected),
-            "path": os.path.join(self.data_dir, filename),
-        }
+        return SearchLinksResponse(
+            filename=filename,
+            total_links=len(collected),
+            path=os.path.join(self.data_dir, filename),
+        )
 
-    def etl(self, filename: str) -> Dict[str, int | str]:
+    def etl(self, filename: str) -> EtlResponse:
         if not filename or "/" in filename or ".." in filename:
             raise HTTPException(status_code=400, detail="filename inválido")
         csv_path = os.path.join(self.data_dir, filename)
@@ -210,27 +217,28 @@ class ScrapingService:
 
         self._etl_one_file(csv_path)
 
-        return {
-            "filename": filename,
-            "processed": total,
-            "output_dir": self.out_dir,
-        }
+        return EtlResponse(
+            filename=filename,
+            processed=total,
+            output_dir=self.out_dir,
+        )
 
-    def list_files(self, kind: str = "all") -> Dict[str, List[Dict[str, str | int]]]:
+    def list_files(self, kind: str = "all") -> ListFilesResponse:
         kinds = {"links", "scraped", "all"}
         if kind not in kinds:
             raise HTTPException(status_code=400, detail="kind inválido")
 
-        def file_info(path: str) -> Dict[str, str | int]:
+        def file_info(path: str) -> FileItem:
             st = os.stat(path)
-            return {
-                "name": os.path.basename(path),
-                "size": st.st_size,
-                "modified": datetime.fromtimestamp(st.st_mtime).isoformat(),
-                "path": path,
-            }
+            return FileItem(
+                name=os.path.basename(path),
+                size=st.st_size,
+                modified=datetime.fromtimestamp(st.st_mtime).isoformat(),
+                path=path,
+            )
 
-        result: Dict[str, List[Dict[str, str | int]]] = {"links": [], "scraped": []}
+        links_files = []
+        scraped_files = []
         links_glob = os.path.join(self.data_dir, "links_*.csv")
         scraped_glob = os.path.join(self.out_dir, "*.csv")
 
@@ -238,17 +246,17 @@ class ScrapingService:
             import glob
 
             for p in sorted(glob.glob(links_glob)):
-                result["links"].append(file_info(p))
+                links_files.append(file_info(p))
 
         if kind in ("scraped", "all"):
             import glob
 
             for p in sorted(glob.glob(scraped_glob)):
-                result["scraped"].append(file_info(p))
+                scraped_files.append(file_info(p))
 
-        return result
+        return ListFilesResponse(links=links_files, scraped=scraped_files)
 
-    def delete_file(self, kind: str, filename: str) -> Dict[str, str]:
+    def delete_file(self, kind: str, filename: str) -> DeleteFileResponse:
         if kind not in {"links", "scraped"}:
             raise HTTPException(status_code=400, detail="kind inválido")
         if not filename or "/" in filename or ".." in filename:
@@ -258,4 +266,4 @@ class ScrapingService:
         if not os.path.exists(path):
             raise HTTPException(status_code=404, detail="arquivo não encontrado")
         os.remove(path)
-        return {"deleted": filename, "kind": kind}
+        return DeleteFileResponse(deleted=filename, kind=kind)

@@ -1,6 +1,6 @@
 import io
 import os
-from typing import Any, Dict, List
+from typing import List
 
 import PyPDF2
 from docx import Document
@@ -10,7 +10,15 @@ from langchain_text_splitters import CharacterTextSplitter
 from src.api.exceptions.store_excpetions import InvalidFormatException
 from src.config import settings
 from src.lib.clients.langchain import LangChainClient
-from src.schemas.store_schema import DocsIndexingRequest, DocsType
+from src.schemas.store_schema import (
+    ContextStats,
+    DocsIndexingResponse,
+    DocsType,
+    DocumentIndexResult,
+    SearchDocResult,
+    SearchDocsResponse,
+    SearchDocsWithContextResponse,
+)
 
 
 class StoreService:
@@ -37,6 +45,11 @@ class StoreService:
             raise InvalidFormatException(file_extension)
 
         return self.valid_extensions[file_extension]
+
+    def _get_document_name(self, filename: str) -> str:
+        name_without_ext = os.path.splitext(filename)[0]
+        clean_name = name_without_ext.replace("_", " ").replace("-", " ")
+        return clean_name.title().strip()
 
     def _extract_text_from_pdf(self, content: bytes) -> str:
         try:
@@ -124,8 +137,9 @@ class StoreService:
         except Exception as e:
             raise Exception(f"Erro ao processar arquivo {filename}: {str(e)}")
 
-    async def indexa_documento(self, file: UploadFile, request: DocsIndexingRequest):
+    async def indexa_documento(self, file: UploadFile) -> DocumentIndexResult:
         file_format = self._get_file_format(file)
+        document_name = self._get_document_name(file.filename)
 
         content = await file.read()
 
@@ -137,9 +151,6 @@ class StoreService:
 
             if not text.strip():
                 raise Exception("Não foi possível extrair conteúdo legível do arquivo")
-
-            text_preview = text[:200].replace("\n", " ")
-            print(f"Texto extraído de {file.filename}: {text_preview}...")
 
         except Exception as e:
             raise Exception(f"Erro ao processar {file.filename}: {str(e)}")
@@ -156,8 +167,7 @@ class StoreService:
         enriched_texts = []
         for i, chunk in enumerate(docs):
             metadata_text = f"""Arquivo: {file.filename}
-Nome: {request.name}
-Descrição: {request.description}
+Nome: {document_name}
 Tipo: {file_format.value}
 Chunk: {i+1}/{len(docs)}
 Caracteres: {len(chunk)}
@@ -167,24 +177,62 @@ Caracteres: {len(chunk)}
 
         self.llm_client.add_texts(enriched_texts)
 
-        return {
-            "message": "Documento indexado com sucesso",
-            "filename": file.filename,
-            "file_type": file_format.value,
-            "chunks_created": len(docs),
-            "characters_processed": len(text),
-            "chunk_size_used": chunk_size,
-            "preview": text[:300] + "..." if len(text) > 300 else text,
-        }
+        return DocumentIndexResult(
+            message="Documento indexado com sucesso",
+            filename=file.filename,
+            document_name=document_name,
+            file_type=file_format.value,
+            chunks_created=len(docs),
+            characters_processed=len(text),
+            chunk_size_used=chunk_size,
+            preview=text[:300] + "..." if len(text) > 300 else text,
+        )
 
-    async def search_docs(self, query: str, limit: int = 5) -> List[Dict[str, Any]]:
+    async def indexa_documentos(self, files: List[UploadFile]) -> DocsIndexingResponse:
+        if not files:
+            raise Exception("Nenhum arquivo fornecido")
+
+        results = []
+        total_chunks = 0
+        total_characters = 0
+        processed_files = 0
+        errors = []
+
+        for file in files:
+            try:
+                result = await self.indexa_documento(file)
+                results.append(result)
+                total_chunks += result.chunks_created
+                total_characters += result.characters_processed
+                processed_files += 1
+
+            except Exception as e:
+                error_msg = f"Erro ao processar {file.filename}: {str(e)}"
+                errors.append(error_msg)
+                print(error_msg)
+                continue
+
+        if processed_files == 0:
+            raise Exception(
+                f"Nenhum arquivo foi processado com sucesso. Erros: {'; '.join(errors)}"
+            )
+
+        return DocsIndexingResponse(
+            processed_files=processed_files,
+            results=results,
+            total_chunks=total_chunks,
+            total_characters=total_characters,
+            errors=errors if errors else None,
+        )
+
+    async def search_docs(self, query: str, limit: int = 5) -> SearchDocsResponse:
         if not query.strip():
-            return []
+            return SearchDocsResponse(results=[])
 
         results = self.llm_client.similarity_search(query, k=limit)
 
         if not results:
-            return []
+            return SearchDocsResponse(results=[])
 
         formatted_results = []
         for i, doc in enumerate(results):
@@ -196,7 +244,7 @@ Caracteres: {len(chunk)}
             doc_type = ""
             chunk_info = ""
 
-            for line in lines[:8]:
+            for line in lines[:7]:
                 if line.startswith("Arquivo:"):
                     filename = line.replace("Arquivo:", "").strip()
                 elif line.startswith("Nome:"):
@@ -208,7 +256,7 @@ Caracteres: {len(chunk)}
 
             content_start = 0
             for j, line in enumerate(lines):
-                if line.strip() == "" and j > 5:
+                if line.strip() == "" and j > 4:
                     content_start = j + 1
                     break
 
@@ -225,33 +273,43 @@ Caracteres: {len(chunk)}
                 preview += "..."
 
             formatted_results.append(
-                {
-                    "rank": i + 1,
-                    "content": clean_content,
-                    "filename": filename,
-                    "document_name": doc_name,
-                    "document_type": doc_type,
-                    "chunk": chunk_info,
-                    "preview": preview,
-                    "content_length": len(clean_content),
-                    "metadata": getattr(doc, "metadata", {}),
-                }
+                SearchDocResult(
+                    rank=i + 1,
+                    content=clean_content,
+                    filename=filename,
+                    document_name=doc_name,
+                    document_type=doc_type,
+                    chunk=chunk_info,
+                    preview=preview,
+                    content_length=len(clean_content),
+                    metadata=getattr(doc, "metadata", {}),
+                )
             )
 
-        return formatted_results
+        return SearchDocsResponse(results=formatted_results)
 
     async def search_docs_with_context(
         self, query: str, limit: int = 5
-    ) -> Dict[str, Any]:
+    ) -> SearchDocsWithContextResponse:
         results = await self.search_docs(query, limit)
 
-        if not results:
-            return {"query": query, "found_documents": 0, "results": [], "context": ""}
+        if not results.results:
+            return SearchDocsWithContextResponse(
+                query=query,
+                found_documents=0,
+                results=[],
+                context="",
+                context_stats=ContextStats(
+                    total_characters=0,
+                    estimated_tokens=0,
+                    chunks_included=0,
+                ),
+            )
 
         context_parts = []
-        for result in results:
+        for result in results.results:
             context_parts.append(
-                f"[{result['document_name']} - Chunk {result['chunk']}]: {result['content']}"
+                f"[{result.document_name} - Chunk {result.chunk}]: {result.content}"
             )
 
         context = "\n\n---\n\n".join(context_parts)
@@ -259,14 +317,14 @@ Caracteres: {len(chunk)}
         total_chars = len(context)
         estimated_tokens = total_chars // 4
 
-        return {
-            "query": query,
-            "found_documents": len(results),
-            "results": results,
-            "context": context,
-            "context_stats": {
-                "total_characters": total_chars,
-                "estimated_tokens": estimated_tokens,
-                "chunks_included": len(results),
-            },
-        }
+        return SearchDocsWithContextResponse(
+            query=query,
+            found_documents=len(results.results),
+            results=results.results,
+            context=context,
+            context_stats=ContextStats(
+                total_characters=total_chars,
+                estimated_tokens=estimated_tokens,
+                chunks_included=len(results.results),
+            ),
+        )

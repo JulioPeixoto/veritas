@@ -1,5 +1,3 @@
-from typing import Dict
-
 from fastapi import APIRouter, Query
 
 from src.schemas.scraping_schema import (
@@ -80,7 +78,7 @@ async def scraping_etl(
     filename: str = Query(
         ..., description="Nome do CSV gerado pela busca, localizado em data/"
     )
-) -> Dict[str, str | int]:
+):
     """
     Executa ETL (Extract, Transform, Load) sobre arquivo CSV gerado pelo scraping.
 
