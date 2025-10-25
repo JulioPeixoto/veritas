@@ -1,0 +1,125 @@
+RESUMO DE PESQUISA: SISTEMA RAG PARA INFORMAÇÕES CLIMÁTICAS DE ARACAJU
+
+1. INTRODUÇÃO
+
+Este documento apresenta o desenvolvimento de um sistema de Retrieval-Augmented Generation (RAG) especializado em informações sobre clima e prevenção em Aracaju, Sergipe. O sistema combina busca vetorial com geração de texto para fornecer respostas contextualizadas sobre alagamentos, calor extremo e medidas preventivas na capital sergipana.
+
+2. ARQUITETURA DO SISTEMA
+
+2.1 Pipeline de Processamento de Documentos
+- Extração de texto específica por formato
+- Segmentação em chunks de 1000-1500 caracteres com overlap de 150
+- Enriquecimento com metadados (nome do arquivo, tipo, chunk, caracteres)
+- Geração de embeddings usando OpenAI text-embedding-3-small
+- Armazenamento em vector store SQLiteVec
+
+2.2 Modelos Utilizados
+- Embeddings: OpenAI text-embedding-3-small (1536 dimensões)
+- Geração de texto: GPT-4o-mini
+- Vector store: SQLiteVec com similaridade por cosseno
+- Expansão de query: GPT-4o-mini com temperatura 0.3
+
+2.3 Processo de Embeddings
+Os embeddings são gerados automaticamente durante a indexação através do LangChain, que utiliza o modelo text-embedding-3-small da OpenAI. Cada chunk de documento é convertido em um vetor de 1536 dimensões que captura o significado semântico do texto. O processo inclui:
+- Normalização do texto de entrada
+- Geração de embedding via API OpenAI
+- Armazenamento no banco vetorial SQLiteVec
+- Indexação para busca por similaridade
+
+3. FUNCIONAMENTO DO RAG
+
+3.1 Processo de Retrieval
+Quando uma pergunta é recebida, o sistema:
+- Expande a query original usando GPT-4o-mini para incluir sinônimos e termos relacionados
+- Gera embedding da query expandida
+- Realiza busca por similaridade no vector store
+- Recupera os top-5 documentos mais relevantes
+- Implementa fallback para query original se a expandida não retornar resultados
+
+3.2 Processo de Generation
+Com os documentos recuperados, o sistema:
+- Combina o contexto dos documentos relevantes
+- Aplica prompt engineering especializado para Aracaju e clima
+- Gera resposta contextualizada usando GPT-4o-mini
+- Inclui metadados sobre documentos utilizados e tokens estimados
+
+3.3 Função Matemática de Busca
+O sistema utiliza similaridade por cosseno como função principal de busca vetorial:
+
+**Fórmula da Similaridade por Cosseno:**
+cos(θ) = (A · B) / (||A|| × ||B||)
+
+Onde:
+- A = vetor embedding da query (1536 dimensões)
+- B = vetor embedding do documento (1536 dimensões)
+- A · B = produto escalar entre os vetores
+- ||A|| = norma euclidiana do vetor A
+- ||B|| = norma euclidiana do vetor B
+- θ = ângulo entre os vetores
+
+**Interpretação dos Valores:**
+- cos(θ) = 1: vetores idênticos (máxima similaridade)
+- cos(θ) = 0: vetores ortogonais (sem similaridade)
+- cos(θ) = -1: vetores opostos (mínima similaridade)
+
+**Processo de Cálculo:**
+1. Query "chuva em Aracaju" → embedding_query[1536]
+2. Documento "Chuva provoca alagamentos..." → embedding_doc[1536]
+3. Cálculo: cos(θ) = dot(embedding_query, embedding_doc) / (norm(embedding_query) × norm(embedding_doc))
+4. Resultado: score entre 0 e 1 (valores negativos são raros em embeddings de texto)
+
+**Implementação no SQLiteVec:**
+O banco utiliza a função de distância por cosseno otimizada para vetores normalizados, calculando diretamente o produto escalar entre embeddings pré-normalizados, resultando em busca eficiente O(n) onde n é o número de documentos.
+
+3.4 Cálculo de Relevância Final
+O sistema combina a similaridade matemática com ranking posicional:
+- Score base: similaridade por cosseno (0.0 a 1.0)
+- Score interface: 1.0 / posição no ranking (para compatibilidade com UI)
+- Ordenação: decrescente pela similaridade por cosseno
+- Threshold implícito: top-5 documentos mais similares
+
+4. DATASET E DOCUMENTOS INDEXADOS
+
+O sistema foi alimentado com documentos específicos sobre Aracaju, incluindo:
+- Notícias sobre alagamentos em bairros específicos (São José, Santa Maria, Ponto Novo)
+- Relatórios da Defesa Civil sobre chuvas e emergências
+- Orientações médicas sobre calor extremo
+- Dados quantitativos de precipitação (176mm em 48h no Ponto Novo)
+- Informações sobre pontos críticos de alagamento
+- Números de emergência (Defesa Civil 199, SMTT 118)
+
+5. PERGUNTAS E RESPOSTAS TESTADAS
+
+5.1 Pergunta: "Hoje está chovendo muito em Aracaju — há risco de alagamento no bairro São José?"
+Resposta: O sistema identificou corretamente que há risco de alagamento no bairro São José, citando alertas da Defesa Civil e histórico de alagamentos na região. Mencionou especificamente que o bairro foi um dos mais afetados em precipitações recentes.
+
+5.2 Pergunta: "Quais são os principais pontos de alagamento próximos ao bairro São José que devo evitar?"
+Resposta: O sistema extraiu informações específicas dos documentos, identificando a Rua Lagarto como ponto crítico onde veículos ficaram impedidos de trafegar, e a Avenida Filadélfia Dórea como área intransitável durante chuvas fortes.
+
+5.3 Pergunta: "Se meu carro ficar preso em um alagamento em Aracaju, qual ação imediata devo tomar?"
+Resposta: O sistema forneceu orientações detalhadas sobre não tentar dar partida no motor, sair do veículo quando a água ultrapassar metade das rodas, usar o encosto de cabeça para quebrar vidros se necessário, subir no teto do carro e aguardar resgate. Incluiu números de emergência (Defesa Civil 199, Bombeiros 193).
+
+5.4 Pergunta: "Quais medidas preventivas estão recomendados para moradores de Aracaju durante calor extremo?"
+Resposta: O sistema extraiu orientações médicas específicas, incluindo hidratação frequente, busca por ambientes frescos e arejados, uso de roupas com proteção UV e filtro solar. Citou sintomas de alerta como cefaleia, irritabilidade, pele avermelhada e orientações do Dr. William Barcelos do Hospital da Criança.
+
+5.5 Pergunta: "Quais lugares de Aracaju eu não devo ir em situações de calor extremo?"
+Resposta: O sistema reconheceu limitações no dataset, fornecendo orientações gerais sobre evitar locais sem sombra, mal ventilados e sem proteção solar, mas admitindo não ter informações específicas sobre geografia urbana de Aracaju para calor extremo.
+
+5.6 Pergunta: "Moro no bairro Ponto Novo. Essa região é afetada por chuvas?"
+Resposta: O sistema extraiu dados quantitativos específicos, informando que o Ponto Novo registrou 176mm de chuva em 48 horas e 89mm em período mais curto, sendo uma das áreas mais afetadas. Forneceu orientações específicas sobre monitoramento, contatos de emergência e cuidados estruturais.
+
+6. ANÁLISE DE PERFORMANCE
+
+6.1 Pontos Fortes
+- Extração precisa de informações específicas (bairros, ruas, números)
+- Combinação eficaz de dados de múltiplos documentos
+- Respostas contextualizadas e práticas
+- Fallback inteligente entre query expandida e original
+- Inclusão consistente de números de emergência
+
+6.2 Limitações Identificadas
+- Ranking simplificado (apenas 1/posição)
+- Ausência de métricas de avaliação (Precision@k, Recall@k, MAP)
+- Chunking fixo sem consideração semântica
+- Falta de re-ranking ou boost por metadados
+- Dataset limitado para algumas consultas específicas

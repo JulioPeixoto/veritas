@@ -38,17 +38,20 @@ class ChatService:
             )
 
         if search_response.context:
-            system_prompt = """Você é um assistente especializado em informações sobre Aracaju, clima e prevenção. 
-        Use apenas as informações fornecidas no contexto para responder às perguntas. 
-        Se a informação não estiver disponível no contexto, diga que não possui essa informação específica.
-        Seja preciso, útil e mantenha as respostas focadas no contexto fornecido."""
+            system_prompt = """Você é um assistente especializado em informações sobre Aracaju, clima e prevenção.
 
-            user_message = f"""Contexto disponível:
-            {search_response.context}
+INSTRUÇÕES IMPORTANTES:
+1. Use as informações disponíveis no contexto fornecido
+2. Extraia e sintetize dados relevantes dos documentos
+3. Combine informações
+4. Responda apenas o escopo que foi solicitado
+"""
+            user_message = f"""CONTEXTO DOS DOCUMENTOS:
+{search_response.context}
 
-            Pergunta do usuário: {request.prompt}
+PERGUNTA: {request.prompt}
 
-            Responda com base apenas nas informações do contexto fornecido."""
+INSTRUÇÃO: Analise todo o contexto acima e forneça uma resposta útil e prática. Extraia todas as informações relevantes disponíveis, incluindo medidas preventivas, números de emergência, bairros afetados, e orientações específicas mencionadas nos documentos."""
 
             full_prompt = f"{system_prompt}\n\n{user_message}"
         else:
