@@ -3,7 +3,6 @@ from fastapi.responses import RedirectResponse
 
 from src.api import router
 from src.lib.clients.langchain import LangChainClient
-from src.ws import router as ws_router
 
 app = FastAPI(title="Veritas", version="0.1.0")
 
@@ -19,4 +18,7 @@ async def startup_event():
 
 
 app.include_router(router)
-app.include_router(ws_router)
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("src.main:app", host="0.0.0.0", port=8000, reload=True)
