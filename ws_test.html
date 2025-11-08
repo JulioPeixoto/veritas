@@ -135,7 +135,7 @@
 
         // Health WS
         connectHealthBtn.addEventListener('click', () => {
-            healthWs = new WebSocket('ws://localhost:8000/ws/health');
+            healthWs = new WebSocket('ws://localhost:8000/api/v1/ws/health');
             healthStatus.textContent = 'Connecting...';
             connectHealthBtn.disabled = true;
             disconnectHealthBtn.disabled = false;
@@ -171,7 +171,7 @@
 
         // Agent WS
         connectAgentBtn.addEventListener('click', () => {
-            agentWs = new WebSocket('ws://localhost:8000/ws/agent');
+            agentWs = new WebSocket('ws://localhost:8000/api/v1/ws/agent');
             agentStatus.textContent = 'Connecting...';
             connectAgentBtn.disabled = true;
             disconnectAgentBtn.disabled = false;
