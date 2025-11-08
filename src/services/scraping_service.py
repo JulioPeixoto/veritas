@@ -13,13 +13,9 @@ from fastapi import HTTPException, UploadFile
 
 from src.config import settings
 from src.lib.clients.serpapi import SerpAPIClient
-from src.schemas.scraping_schema import (
-    DeleteFileResponse,
-    EtlResponse,
-    FileItem,
-    ListFilesResponse,
-    SearchLinksResponse,
-)
+from src.schemas.scraping_schema import (DeleteFileResponse, EtlResponse,
+                                         FileItem, ListFilesResponse,
+                                         SearchLinksResponse)
 
 
 class ScrapingService:
@@ -203,25 +199,27 @@ class ScrapingService:
         )
 
     async def etl(self, file: UploadFile) -> EtlResponse:
-        if not file.filename or not file.filename.endswith('.csv'):
+        if not file.filename or not file.filename.endswith(".csv"):
             raise HTTPException(status_code=400, detail="arquivo deve ser CSV")
-        
+
         content = await file.read()
         if not content:
             raise HTTPException(status_code=400, detail="arquivo está vazio")
-        
+
         try:
-            content_str = content.decode('utf-8')
-            lines = content_str.strip().split('\n')
+            content_str = content.decode("utf-8")
+            lines = content_str.strip().split("\n")
             reader = csv.DictReader(lines)
             links = [row["link"] for row in reader if row.get("link")]
             total = len(links)
         except Exception as e:
-            raise HTTPException(status_code=400, detail=f"erro ao processar CSV: {str(e)}")
-        
+            raise HTTPException(
+                status_code=400, detail=f"erro ao processar CSV: {str(e)}"
+            )
+
         if not links:
             raise HTTPException(status_code=400, detail="nenhum link encontrado no CSV")
-        
+
         seen = set()
         for url in links:
             self._process_link(url, seen)

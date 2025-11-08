@@ -10,15 +10,10 @@ from langchain_text_splitters import CharacterTextSplitter
 from src.api.exceptions.store_excpetions import InvalidFormatException
 from src.config import settings
 from src.lib.clients.langchain import LangChainClient
-from src.schemas.store_schema import (
-    ContextStats,
-    DocsIndexingResponse,
-    DocsType,
-    DocumentIndexResult,
-    SearchDocResult,
-    SearchDocsResponse,
-    SearchDocsWithContextResponse,
-)
+from src.schemas.store_schema import (ContextStats, DocsIndexingResponse,
+                                      DocsType, DocumentIndexResult,
+                                      SearchDocResult, SearchDocsResponse,
+                                      SearchDocsWithContextResponse)
 
 
 class StoreService:

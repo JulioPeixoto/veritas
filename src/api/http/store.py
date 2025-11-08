@@ -3,11 +3,8 @@ from typing import List
 from fastapi import APIRouter, File, HTTPException, Query, UploadFile
 
 from src.api.exceptions.store_excpetions import InvalidFormatExceptionResponse
-from src.schemas.store_schema import (
-    DocsIndexingResponse,
-    SearchDocsResponse,
-    SearchDocsWithContextResponse,
-)
+from src.schemas.store_schema import (DocsIndexingResponse, SearchDocsResponse,
+                                      SearchDocsWithContextResponse)
 from src.services.store_service import StoreService
 
 store_service = StoreService()

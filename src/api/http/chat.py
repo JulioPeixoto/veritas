@@ -30,7 +30,7 @@ async def chat_with_rag(request: ChatRequest):
         {
             "prompt": "Hoje está chovendo muito em Aracaju, há risco de alagamento no bairro São José?"
         }
-        
+
         Resposta:
         {
             "output": "Sim, o bairro São José é uma das áreas afetadas por alagamentos...",

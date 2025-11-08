@@ -1,11 +1,8 @@
-from fastapi import APIRouter, Query, UploadFile, File
+from fastapi import APIRouter, File, Query, UploadFile
 
-from src.schemas.scraping_schema import (
-    DeleteFileResponse,
-    EtlResponse,
-    ListFilesResponse,
-    SearchLinksResponse,
-)
+from src.schemas.scraping_schema import (DeleteFileResponse, EtlResponse,
+                                         ListFilesResponse,
+                                         SearchLinksResponse)
 from src.services.scraping_service import ScrapingService
 
 router = APIRouter(prefix="", tags=["Scraping"])
